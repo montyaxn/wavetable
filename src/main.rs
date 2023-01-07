@@ -13,5 +13,6 @@ fn main() -> std::io::Result<()> {
     wt.morph_liner(); //間を埋める
     wt.set_name("fm_sin".to_string());
     wt.export()?;
+    wt.demo().unwrap();
     Ok(())
 }
