@@ -1,11 +1,11 @@
-use std::{fs::File, mem::MaybeUninit, path::Path};
+use std::mem::MaybeUninit;
 
 use crate::waveform::*;
 
 // wavetable. includes 256 waveforms
-pub struct Wavetable {
+pub struct Wavetable{
     pub wavetable: [Waveform; 256],
-    name: Option<String>,
+    name: String,
 }
 
 impl Wavetable {
@@ -18,16 +18,13 @@ impl Wavetable {
             }
             unsafe { std::mem::transmute::<_, [Waveform; 256]>(wt) }
         };
-        Wavetable {
-            wavetable: wt,
-            name: None,
-        }
+        Wavetable::new(wt,"untitled".to_string())
     }
 
     pub fn new(wavetable: [Waveform; 256], name: String) -> Wavetable {
         Wavetable {
             wavetable,
-            name: Some(name),
+            name: name,
         }
     }
 
@@ -46,7 +43,7 @@ impl Wavetable {
     }
 
     pub fn set_name(&mut self, name: String) {
-        self.name = Some(name);
+        self.name = name;
     }
 
     // apply normalize to each waveform
@@ -59,28 +56,30 @@ impl Wavetable {
             for wf in 0..2048 {
                 self.wavetable[wt].waveform[wf] = (((255.0 - wt as f32)
                     * self.wavetable[0].waveform[wf])
-                    + (wt as f32 * self.wavetable[255].waveform[wf]))/255.0
+                    + (wt as f32 * self.wavetable[255].waveform[wf]))
+                    / 255.0
             }
         }
     }
 
     // make .wav from Wavetable. file name is the same as wavetable name.
     pub fn export(&self) -> std::io::Result<()> {
-        let mut f = File::create(Path::new(&format!(
-            "{}{}{}",
-            "data/",
-            self.name.clone().unwrap_or("untitled".to_string()),
-            ".wav"
-        )))?;
-
-        let mut wt_vec = Vec::new();
-        self.wavetable
-            .iter()
-            .for_each(|w| wt_vec.append(&mut w.render()));
-
-        let header = wav::Header::new(wav::WAV_FORMAT_PCM, 1, 44100, 16);
-        wav::write(header, &wav::BitDepth::Sixteen(wt_vec), &mut f)?;
-
+        let spec = hound::WavSpec {
+            channels: 1,
+            sample_rate: 44100,
+            bits_per_sample: 16,
+            sample_format: hound::SampleFormat::Int,
+        };
+        let fname = format!("{}{}{}","wavetable/",self.name,".wav");
+        let mut writer =
+            hound::WavWriter::create(fname, spec)
+                .unwrap();
+        for w in self.wavetable.iter() {
+            for s in w.waveform.iter() {
+                let amp = i16::MAX as f32;
+                writer.write_sample((s * amp) as i16).unwrap();
+            }
+        }
         Ok(())
     }
 }
