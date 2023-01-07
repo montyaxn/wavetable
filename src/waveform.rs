@@ -1,4 +1,5 @@
 // waveform type on heap
+#[derive(Clone,Debug)]
 pub struct Waveform {
     pub waveform: Box<[f32; 2048]>,
 }

@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 hound = "3.5.0"
-iced = "0.6"
+rodio = "0.16.0"
+iced = {version = "0.6",features=["canvas"]}

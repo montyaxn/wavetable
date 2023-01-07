@@ -1,12 +1,11 @@
 use std::mem::MaybeUninit;
 
-use iced::Application;
-
 use crate::waveform::*;
+use crate::preview;
 
-pub mod demo;
 
 // wavetable. includes 256 waveforms
+#[derive(Clone)]
 pub struct Wavetable{
     pub wavetable: [Waveform; 256],
     name: String,
@@ -66,8 +65,8 @@ impl Wavetable {
         }
     }
 
-    pub fn demo(&self) -> iced::Result{
-        demo::WtDemo::run(iced::Settings::default())
+    pub fn preview(&self) -> iced::Result{
+        preview::preview(self.wavetable.clone())
     }
 
     // make .wav from Wavetable. file name is the same as wavetable name.
