@@ -1,5 +1,3 @@
-use std::f32::consts::PI;
-
 use crate::waveform::Waveform;
 
 #[derive(Clone, Debug)]
